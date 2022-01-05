@@ -19,13 +19,23 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("ConstantConditions")
 public class ClientAuthorizationInterceptor extends AuthorizationInterceptor {
 
-  String introspectUrl = "http://localhost:8180/auth/realms/"
+  @Value("${auth_url}")
+  private String auth_url;
+
+  static final Logger logger = LoggerFactory.getLogger(PayloadDAOImpl.class);
+
+
+
+  String introspectUrl = Config.get("auth_url")
       + Config.get("realm") + "/protocol/openid-connect/token/introspect";
 
+  String test = System.getProperty("auth_url");
   @Override
   public List<IAuthRule> buildRuleList(RequestDetails theRequestDetails) {
     String useOauth = Config.get("use_oauth");
@@ -36,7 +46,7 @@ public class ClientAuthorizationInterceptor extends AuthorizationInterceptor {
     }
 
     CloseableHttpClient client = HttpClients.createDefault();
-
+    logger.info("E" + auth_url);
     String authHeader = theRequestDetails.getHeader("Authorization");
     // Get the token and drop the "Bearer"
     if (authHeader == null) {

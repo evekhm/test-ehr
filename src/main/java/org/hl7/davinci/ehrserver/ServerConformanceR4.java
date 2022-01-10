@@ -26,12 +26,18 @@ public class ServerConformanceR4 extends JpaCapabilityStatementProvider {
   public CapabilityStatement getServerConformance(HttpServletRequest theRequest, RequestDetails details) {
     Extension securityExtension = new Extension();
     securityExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris");
+    String proxy_authorize = System.getenv("PROXY_AUTHORIZE") != null ?
+        System.getenv("PROXY_AUTHORIZE") : Config.get("proxy_authorize");
+
+    String  proxy_token =  System.getenv("PROXY_TOKEN") != null ?
+        System.getenv("PROXY_TOKEN") : Config.get("proxy_token");
+
     securityExtension.addExtension()
         .setUrl("authorize")
-        .setValue(new UriType(Config.get("proxy_authorize")));
+        .setValue(new UriType(proxy_authorize));
     securityExtension.addExtension()
         .setUrl("token")
-        .setValue(new UriType(Config.get("proxy_token")));
+        .setValue(new UriType(proxy_token));
     CapabilityStatement.CapabilityStatementRestSecurityComponent securityComponent = new CapabilityStatement.CapabilityStatementRestSecurityComponent();
     securityComponent.setCors(true);
     securityComponent

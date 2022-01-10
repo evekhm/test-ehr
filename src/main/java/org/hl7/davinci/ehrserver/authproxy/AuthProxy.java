@@ -49,8 +49,7 @@ public class AuthProxy {
   public void getAuth(@RequestParam Map<String, String> reqParamValue, HttpServletResponse httpServletResponse, HttpServletRequest request) throws IOException {
     //
     String params = _parseRedirect(reqParamValue, request);
-    UriComponentsBuilder forwardUrl = UriComponentsBuilder.
-        fromHttpUrl(Config.get("auth_url") + Config.get("realm") + Config.get("oauth_authorize"));
+    UriComponentsBuilder forwardUrl = UriComponentsBuilder.fromHttpUrl(Config.get("oauth_authorize"));
     String redirectUrl = forwardUrl.toUriString() + params;
     logger.info("redirectUrl: " + redirectUrl);
     httpServletResponse.setHeader("Location", redirectUrl);
@@ -83,8 +82,7 @@ public class AuthProxy {
 
     RestTemplate restTemplate = new RestTemplate();
     try {
-      ResponseEntity<TokenResponse> response = restTemplate.postForEntity(
-          Config.get("auth_url") + Config.get("realm") + Config.get("oauth_token"), request, TokenResponse.class);
+      ResponseEntity<TokenResponse> response = restTemplate.postForEntity(Config.get("oauth_token"), request, TokenResponse.class);
       Objects.requireNonNull(response.getBody())
           .setPatient(payload.getPatient())
           .setAppContext(payload.getAppContext());

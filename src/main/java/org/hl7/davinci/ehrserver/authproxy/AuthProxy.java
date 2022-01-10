@@ -49,7 +49,13 @@ public class AuthProxy {
   public void getAuth(@RequestParam Map<String, String> reqParamValue, HttpServletResponse httpServletResponse, HttpServletRequest request) throws IOException {
     //
     String params = _parseRedirect(reqParamValue, request);
-    UriComponentsBuilder forwardUrl = UriComponentsBuilder.fromHttpUrl(Config.get("oauth_authorize"));
+
+    String oauth_authorize = System.getenv("OAUTH_AUTHORIZE") != null ?
+        System.getenv("OAUTH_AUTHORIZE") : Config.get("oauth_authorize");
+
+    System.out.println("Using oauth_authorize: " + oauth_authorize);
+
+    UriComponentsBuilder forwardUrl = UriComponentsBuilder.fromHttpUrl(oauth_authorize);
     String redirectUrl = forwardUrl.toUriString() + params;
     logger.info("redirectUrl: " + redirectUrl);
     httpServletResponse.setHeader("Location", redirectUrl);
@@ -82,7 +88,11 @@ public class AuthProxy {
 
     RestTemplate restTemplate = new RestTemplate();
     try {
-      ResponseEntity<TokenResponse> response = restTemplate.postForEntity(Config.get("oauth_token"), request, TokenResponse.class);
+      String oauth_token = System.getenv("OAUTH_TOKEN") != null ?
+          System.getenv("OAUTH_TOKEN") : Config.get("oauth_token");
+
+      System.out.println("Using oauth_token: " + oauth_token);
+      ResponseEntity<TokenResponse> response = restTemplate.postForEntity(oauth_token, request, TokenResponse.class);
       Objects.requireNonNull(response.getBody())
           .setPatient(payload.getPatient())
           .setAppContext(payload.getAppContext());
@@ -143,8 +153,11 @@ public class AuthProxy {
    */
   private String _parseRedirect(Map<String, String> reqParamValue, HttpServletRequest request) {
     String currentRedirectURI = reqParamValue.get("redirect_uri");
-    String finalRedirectURI = "http://" + ((System.getenv("DOCKER_PROFILE").equals("true")) && Config.get("auth_redirect_host") != null ? Config.get("auth_redirect_host") : request.getLocalName()) + ":" + request.getLocalPort() + "/test-ehr/_auth/" + reqParamValue.get("launch") + "?redirect_uri=" + currentRedirectURI;
+    String finalRedirectURI = "http://" + ((System.getenv("DOCKER_PROFILE").equals("true")) && Config.get("auth_redirect_host") != null ?
+        Config.get("auth_redirect_host") :
+        request.getLocalName()) + ":" + request.getLocalPort() + "/test-ehr/_auth/" + reqParamValue.get("launch") + "?redirect_uri=" + currentRedirectURI;
     reqParamValue.put("redirect_uri", finalRedirectURI);
+
     payloadDAO.updateRedirect(reqParamValue.get("launch"), finalRedirectURI);
     return paramFormatter(reqParamValue);
   }
